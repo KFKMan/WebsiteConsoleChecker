@@ -14,26 +14,26 @@ string GetInput(string question)
 	return Console.ReadLine() ?? GetInput(question);
 }
 
-bool errorAccoured = false;
-
-void ErrorAccoured()
-{
-	errorAccoured = true;
-}
-
-void PrintErrorState()
-{
-	Console.WriteLine($"ForOutputRegexing-Error-Accoured-State:{errorAccoured}:");
-}
+Console.WriteLine("Finding or Downloading Required Files");
+var browserFetcher = new BrowserFetcher();
+await browserFetcher.DownloadAsync(); //Download Required Files
+Console.WriteLine("Required Files Finded or Downloaded");
 
 while (true)
 {
-	var target = GetInput("Please Enter Target Website Url: ");
+	bool errorAccoured = false;
 
-	Console.WriteLine("Downloading Required Files");
-	var browserFetcher = new BrowserFetcher();
-	await browserFetcher.DownloadAsync(); //Download Required Files
-	Console.WriteLine("Required Files Downloaded");
+	void ErrorAccoured()
+	{
+		errorAccoured = true;
+	}
+
+	void PrintErrorState()
+	{
+		Console.WriteLine($"ForOutputRegexing-Error-Accoured-State:{errorAccoured}:");
+	}
+
+	var target = GetInput("Please Enter Target Website Url: ");
 
 	await using (var browser = await Puppeteer.LaunchAsync(
 		new LaunchOptions { Headless = true })) //Launch browser
@@ -42,7 +42,7 @@ while (true)
 		{
 			page.Error += (sender, e) =>
 			{
-				ErrorAccoured();
+				//ErrorAccoured();
 				PrintLineWithColor($"Internal System Error => {e.Error}", ConsoleColor.Red);
 			};
 
@@ -72,8 +72,8 @@ while (true)
 
 			if (rep.Status != System.Net.HttpStatusCode.OK)
 			{
-				Console.WriteLine("Status Code is not 200 (OK), maybe a problem?");
-				return;
+				ErrorAccoured();
+				Console.WriteLine($"Status Code is not 200 (OK), it's {rep.Status.ToString()} (${(int)rep.Status})");
 			}
 
 			if (!errorAccoured)
